@@ -29,6 +29,8 @@ GitHub Actions (cron diario)
 |--------|------|-------------|
 | GET | `/api/rates?moneda=USD&from=2025-01-01&to=2025-12-31` | Histórico por moneda y rango |
 | GET | `/api/rates/latest` | Último valor de cada moneda |
+| GET | `/api/rates/stats?moneda=USD&observaciones=30` | Mín/máx/promedio/variación de las últimas N observaciones |
+| GET | `/api/rates/forecast` | Proyección a 7 días (regresión lineal recalculada por el pipeline en cada corrida) |
 | POST | `/api/chat` | Pregunta en lenguaje natural, respondida por IA local con datos de la BD |
 
 ## Cómo correrlo
@@ -77,5 +79,6 @@ npx ng serve
 - [x] **Día 2** — Cuenta en Neon, backfill histórico (2,527 registros desde 2019), API probada con datos reales
 - [x] **Días 3–4** — Dashboard Angular: gráfica de serie de tiempo, selector de rango, último valor
 - [x] **Días 5–7** — Asistente IA: Spring AI + Ollama, endpoint `/api/chat` y UI de chat (retrieval por SQL; pgvector queda para fuentes de texto libre)
-- [x] **Días 8–9** — CI de build (backend y frontend) en GitHub Actions
-- [ ] **Pendiente** — Activar el secret `DATABASE_URL` y probar el cron, pruebas básicas, README final con screenshots y demo en GIF
+- [x] **Días 8–9** — CI con pruebas de backend y build de frontend en GitHub Actions; cron del ETL verificado en la nube
+- [x] **Extra** — Proyección del dólar a 7 días (regresión lineal en el pipeline), endpoint de estadísticas y línea de proyección en el dashboard
+- [ ] **Pendiente** — README final con screenshots y demo en GIF; pgvector cuando se agreguen fuentes de texto libre

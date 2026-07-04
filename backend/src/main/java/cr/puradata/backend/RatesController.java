@@ -3,6 +3,7 @@ package cr.puradata.backend;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -51,5 +52,32 @@ public class RatesController {
                 "SELECT DISTINCT ON (moneda) fecha, moneda, compra, venta "
                         + "FROM exchange_rates ORDER BY moneda, fecha DESC",
                 MAPPER);
+    }
+
+    /** Estadísticas de venta sobre las últimas N observaciones disponibles. */
+    @GetMapping("/stats")
+    public Map<String, Object> stats(
+            @RequestParam(defaultValue = "USD") String moneda,
+            @RequestParam(defaultValue = "30") int observaciones) {
+        return jdbc.queryForMap(
+                "WITH ultimos AS ("
+                        + "  SELECT fecha, venta FROM exchange_rates "
+                        + "  WHERE moneda = ? AND venta IS NOT NULL "
+                        + "  ORDER BY fecha DESC LIMIT ?) "
+                        + "SELECT min(venta) AS minimo, max(venta) AS maximo, "
+                        + "  round(avg(venta), 2) AS promedio, "
+                        + "  round((SELECT venta FROM ultimos ORDER BY fecha DESC LIMIT 1) "
+                        + "      - (SELECT venta FROM ultimos ORDER BY fecha ASC LIMIT 1), 2) AS variacion, "
+                        + "  count(*) AS observaciones "
+                        + "FROM ultimos",
+                moneda.toUpperCase(), observaciones);
+    }
+
+    @GetMapping("/forecast")
+    public List<Rate> forecast(@RequestParam(defaultValue = "USD") String moneda) {
+        return jdbc.query(
+                "SELECT fecha, moneda, NULL AS compra, venta FROM forecasts "
+                        + "WHERE moneda = ? ORDER BY fecha",
+                MAPPER, moneda.toUpperCase());
     }
 }

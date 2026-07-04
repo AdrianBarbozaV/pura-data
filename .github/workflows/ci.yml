@@ -18,7 +18,7 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - run: ./mvnw -B -DskipTests package
+      - run: ./mvnw -B package
 
   frontend:
     runs-on: ubuntu-latest

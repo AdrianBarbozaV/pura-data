@@ -24,6 +24,13 @@
   <section class="panel">
     <div class="filtros">
       <h2>Histórico del dólar</h2>
+      @if (stats(); as s) {
+        <p class="stats">Últimas {{ s.observaciones }} observaciones:
+          mín ₡{{ s.minimo | number:'1.2-2' }} ·
+          máx ₡{{ s.maximo | number:'1.2-2' }} ·
+          prom ₡{{ s.promedio | number:'1.2-2' }} ·
+          variación {{ s.variacion > 0 ? '+' : '' }}{{ s.variacion | number:'1.2-2' }}</p>
+      }
       <div>
         <label>Desde <input type="date" [value]="from" (change)="cambiarRango('from', $any($event.target).value)"></label>
         <label>Hasta <input type="date" [value]="to" (change)="cambiarRango('to', $any($event.target).value)"></label>

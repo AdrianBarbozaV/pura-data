@@ -2,6 +2,7 @@ import { AfterViewInit, Component, ElementRef, OnInit, inject, signal, viewChild
 import { DecimalPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Chart, registerables } from 'chart.js';
+import { forkJoin } from 'rxjs';
 
 Chart.register(...registerables);
 
@@ -12,6 +13,14 @@ export interface Rate {
   moneda: string;
   compra: number | null;
   venta: number | null;
+}
+
+export interface Stats {
+  minimo: number;
+  maximo: number;
+  promedio: number;
+  variacion: number;
+  observaciones: number;
 }
 
 @Component({
@@ -29,6 +38,7 @@ export class App implements OnInit, AfterViewInit {
   error = signal('');
   mensajes = signal<{ rol: 'yo' | 'ia'; texto: string }[]>([]);
   pensando = signal(false);
+  stats = signal<Stats | null>(null);
   to = new Date().toISOString().slice(0, 10);
   from = new Date(Date.now() - 365 * 86400000).toISOString().slice(0, 10);
 
@@ -37,6 +47,7 @@ export class App implements OnInit, AfterViewInit {
       next: r => this.latest.set(r),
       error: () => this.error.set('No se pudo conectar con la API. ¿Está corriendo el backend en el puerto 8080?')
     });
+    this.http.get<Stats>(`${API}/rates/stats`).subscribe(s => this.stats.set(s));
   }
 
   ngAfterViewInit() {
@@ -67,15 +78,24 @@ export class App implements OnInit, AfterViewInit {
   }
 
   cargarGrafica() {
-    this.http.get<Rate[]>(`${API}/rates?moneda=USD&from=${this.from}&to=${this.to}`).subscribe(datos => {
+    forkJoin({
+      serie: this.http.get<Rate[]>(`${API}/rates?moneda=USD&from=${this.from}&to=${this.to}`),
+      forecast: this.http.get<Rate[]>(`${API}/rates/forecast`)
+    }).subscribe(({ serie, forecast }) => {
+      // la proyección solo aplica si el rango llega hasta hoy
+      if (this.to < new Date().toISOString().slice(0, 10)) forecast = [];
+      const proyeccion = serie.length && forecast.length
+        ? [...Array(serie.length - 1).fill(null), serie[serie.length - 1].venta, ...forecast.map(d => d.venta)]
+        : [];
       this.chart?.destroy();
       this.chart = new Chart(this.canvas().nativeElement, {
         type: 'line',
         data: {
-          labels: datos.map(d => d.fecha),
+          labels: [...serie.map(d => d.fecha), ...forecast.map(d => d.fecha)],
           datasets: [
-            { label: 'Compra ₡', data: datos.map(d => d.compra), borderColor: '#2563eb', backgroundColor: '#2563eb', pointRadius: 0, borderWidth: 2, tension: 0.2 },
-            { label: 'Venta ₡', data: datos.map(d => d.venta), borderColor: '#dc2626', backgroundColor: '#dc2626', pointRadius: 0, borderWidth: 2, tension: 0.2 }
+            { label: 'Compra ₡', data: serie.map(d => d.compra), borderColor: '#2563eb', backgroundColor: '#2563eb', pointRadius: 0, borderWidth: 2, tension: 0.2 },
+            { label: 'Venta ₡', data: serie.map(d => d.venta), borderColor: '#dc2626', backgroundColor: '#dc2626', pointRadius: 0, borderWidth: 2, tension: 0.2 },
+            { label: 'Proyección ₡', data: proyeccion, borderColor: '#059669', backgroundColor: '#059669', borderDash: [6, 4], pointRadius: 0, borderWidth: 2 }
           ]
         },
         options: {

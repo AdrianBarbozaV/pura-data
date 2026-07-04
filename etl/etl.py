@@ -14,6 +14,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import statistics
 import sys
 import time
 import urllib.request
@@ -38,6 +39,16 @@ ON CONFLICT (fecha, moneda)
 DO UPDATE SET compra = EXCLUDED.compra,
               venta = EXCLUDED.venta,
               actualizado = now()
+"""
+
+DDL_FORECAST = """
+CREATE TABLE IF NOT EXISTS forecasts (
+    fecha    date NOT NULL,
+    moneda   varchar(3) NOT NULL,
+    venta    numeric(10,2) NOT NULL,
+    generado timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (fecha, moneda)
+);
 """
 
 
@@ -93,7 +104,32 @@ def guardar(rows):
         conn.execute(DDL)
         with conn.cursor() as cur:
             cur.executemany(UPSERT, rows)
+        proyectar(conn)
     print(f"Guardados {len(rows)} registros en la base de datos.")
+
+
+def proyectar(conn, dias=7):
+    """Proyección de venta del dólar: regresión lineal sobre las últimas 30 observaciones."""
+    obs = conn.execute(
+        "SELECT fecha, venta FROM exchange_rates WHERE moneda = 'USD' AND venta IS NOT NULL "
+        "ORDER BY fecha DESC LIMIT 30").fetchall()
+    if len(obs) < 10:
+        return
+    obs.reverse()
+    x = [f.toordinal() for f, _ in obs]
+    y = [float(v) for _, v in obs]
+    # ponytail: regresión lineal de stdlib; un modelo con estacionalidad si algún día hace falta
+    pendiente, intercepto = statistics.linear_regression(x, y)
+    ultima = obs[-1][0]
+    conn.execute(DDL_FORECAST)
+    conn.execute("DELETE FROM forecasts WHERE moneda = 'USD'")
+    with conn.cursor() as cur:
+        cur.executemany(
+            "INSERT INTO forecasts (fecha, moneda, venta) VALUES (%s, 'USD', %s)",
+            [(ultima + dt.timedelta(days=i),
+              round(intercepto + pendiente * (ultima.toordinal() + i), 2))
+             for i in range(1, dias + 1)])
+    print(f"Proyección de {dias} días recalculada.")
 
 
 def main():
