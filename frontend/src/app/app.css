@@ -103,8 +103,37 @@ header p {
   height: 380px;
 }
 
-.chat {
+.chat,
+.noticias {
   margin-top: 1.5rem;
+}
+
+.noticias h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.noticias ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.noticias li {
+  margin: 0.4rem 0;
+}
+
+.noticias a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.noticias a:hover {
+  text-decoration: underline;
+}
+
+.noticias small {
+  color: #94a3b8;
+  margin-left: 0.5rem;
 }
 
 .chat h2 {

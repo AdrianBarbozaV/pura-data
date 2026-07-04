@@ -41,6 +41,20 @@
     </div>
   </section>
 
+  @if (noticias().length) {
+    <section class="panel noticias">
+      <h2>Noticias económicas 📰</h2>
+      <ul>
+        @for (n of noticias(); track n.enlace) {
+          <li>
+            <a [href]="n.enlace" target="_blank" rel="noopener">{{ n.titulo }}</a>
+            <small>{{ n.fecha }}</small>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
   <section class="panel chat">
     <h2>Pregúntale a la IA 🤖</h2>
     <p class="hint">Respondida por un modelo local (Ollama + llama3.2) con los datos reales de la base.</p>

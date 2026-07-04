@@ -51,18 +51,37 @@ CREATE TABLE IF NOT EXISTS forecasts (
 );
 """
 
+DDL_NOTICIAS = """
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE TABLE IF NOT EXISTS noticias (
+    enlace    text PRIMARY KEY,
+    fecha     date,
+    titulo    text NOT NULL,
+    fuente    text,
+    embedding vector(768)
+);
+"""
 
-def fetch_json(url, retries=4):
+RSS_NOTICIAS = ("https://news.google.com/rss/search?"
+                "q=%22tipo+de+cambio%22+OR+d%C3%B3lar+OR+econom%C3%ADa+costa+rica"
+                "&hl=es-419&gl=CR&ceid=CR:es-419")
+
+
+def fetch(url, retries=4, parse=lambda b: b):
     # ponytail: la API a veces devuelve una página HTML de error; reintento con espera exponencial
     for intento in range(retries):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "pura-data-etl/1.0"})
             with urllib.request.urlopen(req, timeout=30) as resp:
-                return json.loads(resp.read().decode())
+                return parse(resp.read())
         except (json.JSONDecodeError, OSError) as e:
             if intento == retries - 1:
                 raise SystemExit(f"API no disponible tras {retries} intentos: {e}")
             time.sleep(2 ** (intento + 1))
+
+
+def fetch_json(url):
+    return fetch(url, parse=lambda b: json.loads(b.decode()))
 
 
 def rows_hoy():
@@ -96,6 +115,31 @@ def rows_backfill(desde):
         inicio = dt.date(inicio.year + 1, 1, 1)
         time.sleep(1)  # no saturar la API
     return rows
+
+
+def noticias_rss():
+    """Titulares económicos de Costa Rica desde Google News RSS."""
+    import xml.etree.ElementTree as ET
+    from email.utils import parsedate_to_datetime
+    items = []
+    for item in ET.fromstring(fetch(RSS_NOTICIAS)).iter("item"):
+        titulo, enlace = item.findtext("title"), item.findtext("link")
+        pub = item.findtext("pubDate")
+        if titulo and enlace:
+            items.append((enlace, parsedate_to_datetime(pub).date() if pub else None,
+                          titulo, item.findtext("source")))
+    return items[:30]
+
+
+def guardar_noticias(items):
+    import psycopg
+    with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
+        conn.execute(DDL_NOTICIAS)
+        with conn.cursor() as cur:
+            cur.executemany(
+                "INSERT INTO noticias (enlace, fecha, titulo, fuente) VALUES (%s, %s, %s, %s) "
+                "ON CONFLICT (enlace) DO NOTHING", items)
+    print(f"Noticias procesadas: {len(items)} (el backend calcula sus embeddings).")
 
 
 def guardar(rows):
@@ -149,6 +193,8 @@ def main():
         print(f"... total {len(rows)} registros (dry-run, no se escribió nada)")
     else:
         guardar(rows)
+        if not args.backfill:
+            guardar_noticias(noticias_rss())
 
 
 if __name__ == "__main__":

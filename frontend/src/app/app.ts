@@ -23,6 +23,13 @@ export interface Stats {
   observaciones: number;
 }
 
+export interface Noticia {
+  fecha: string | null;
+  titulo: string;
+  fuente: string | null;
+  enlace: string;
+}
+
 @Component({
   selector: 'app-root',
   imports: [DecimalPipe],
@@ -39,6 +46,7 @@ export class App implements OnInit, AfterViewInit {
   mensajes = signal<{ rol: 'yo' | 'ia'; texto: string }[]>([]);
   pensando = signal(false);
   stats = signal<Stats | null>(null);
+  noticias = signal<Noticia[]>([]);
   to = new Date().toISOString().slice(0, 10);
   from = new Date(Date.now() - 365 * 86400000).toISOString().slice(0, 10);
 
@@ -48,6 +56,7 @@ export class App implements OnInit, AfterViewInit {
       error: () => this.error.set('No se pudo conectar con la API. ¿Está corriendo el backend en el puerto 8080?')
     });
     this.http.get<Stats>(`${API}/rates/stats`).subscribe(s => this.stats.set(s));
+    this.http.get<Noticia[]>(`${API}/news`).subscribe(n => this.noticias.set(n));
   }
 
   ngAfterViewInit() {

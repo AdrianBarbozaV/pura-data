@@ -21,7 +21,7 @@ GitHub Actions (cron diario)
 - **Base de datos:** PostgreSQL (Neon free tier) — histórico + embeddings (pgvector)
 - **Backend:** Java 21, Spring Boot 3, Spring JDBC, Spring AI
 - **Frontend:** Angular
-- **IA:** Ollama con llama3.2 (100% local, sin costos de API)
+- **IA:** Ollama 100% local — llama3.2 (chat) y nomic-embed-text (embeddings); búsqueda semántica de noticias con pgvector
 
 ## Endpoints
 
@@ -31,7 +31,8 @@ GitHub Actions (cron diario)
 | GET | `/api/rates/latest` | Último valor de cada moneda |
 | GET | `/api/rates/stats?moneda=USD&observaciones=30` | Mín/máx/promedio/variación de las últimas N observaciones |
 | GET | `/api/rates/forecast` | Proyección a 7 días (regresión lineal recalculada por el pipeline en cada corrida) |
-| POST | `/api/chat` | Pregunta en lenguaje natural, respondida por IA local con datos de la BD |
+| GET | `/api/news` | Últimos titulares económicos de Costa Rica (Google News RSS) |
+| POST | `/api/chat` | Pregunta en lenguaje natural; RAG con pgvector sobre noticias + datos de tipo de cambio |
 
 ## Cómo correrlo
 
@@ -81,4 +82,5 @@ npx ng serve
 - [x] **Días 5–7** — Asistente IA: Spring AI + Ollama, endpoint `/api/chat` y UI de chat (retrieval por SQL; pgvector queda para fuentes de texto libre)
 - [x] **Días 8–9** — CI con pruebas de backend y build de frontend en GitHub Actions; cron del ETL verificado en la nube
 - [x] **Extra** — Proyección del dólar a 7 días (regresión lineal en el pipeline), endpoint de estadísticas y línea de proyección en el dashboard
-- [ ] **Pendiente** — README final con screenshots y demo en GIF; pgvector cuando se agreguen fuentes de texto libre
+- [x] **Extra** — RAG con pgvector: el ETL ingiere titulares económicos (Google News RSS), el backend calcula embeddings con Ollama y el chat recupera los titulares más relevantes por similitud semántica
+- [ ] **Pendiente** — README final con screenshots y demo en GIF
