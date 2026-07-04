@@ -1,0 +1,53 @@
+<main>
+  <header>
+    <h1>pura-data 🇨🇷</h1>
+    <p>Tipo de cambio oficial de Costa Rica · Ministerio de Hacienda · actualizado a diario</p>
+  </header>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <section class="cards">
+    @for (r of latest(); track r.moneda) {
+      <article class="card">
+        <h2>{{ r.moneda === 'USD' ? '🇺🇸 Dólar' : '🇪🇺 Euro' }}</h2>
+        @if (r.compra !== null) {
+          <p><span>Compra</span> <strong>₡{{ r.compra | number:'1.2-2' }}</strong></p>
+        }
+        <p><span>Venta</span> <strong>₡{{ r.venta | number:'1.2-2' }}</strong></p>
+        <small>{{ r.fecha }}</small>
+      </article>
+    }
+  </section>
+
+  <section class="panel">
+    <div class="filtros">
+      <h2>Histórico del dólar</h2>
+      <div>
+        <label>Desde <input type="date" [value]="from" (change)="cambiarRango('from', $any($event.target).value)"></label>
+        <label>Hasta <input type="date" [value]="to" (change)="cambiarRango('to', $any($event.target).value)"></label>
+      </div>
+    </div>
+    <div class="grafica-wrap">
+      <canvas #grafica></canvas>
+    </div>
+  </section>
+
+  <section class="panel chat">
+    <h2>Pregúntale a la IA 🤖</h2>
+    <p class="hint">Respondida por un modelo local (Ollama + llama3.2) con los datos reales de la base.</p>
+    <div class="mensajes">
+      @for (m of mensajes(); track $index) {
+        <p [class]="m.rol">{{ m.texto }}</p>
+      }
+      @if (pensando()) {
+        <p class="ia">Pensando…</p>
+      }
+    </div>
+    <form (submit)="$event.preventDefault(); preguntar(caja)">
+      <input #caja placeholder="¿Cómo se movió el dólar este año?">
+      <button [disabled]="pensando()">Enviar</button>
+    </form>
+  </section>
+</main>

@@ -1,0 +1,156 @@
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+header p {
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.cards {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 1.5rem 0;
+}
+
+.card {
+  flex: 1 1 200px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+}
+
+.card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.card p {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.25rem 0;
+}
+
+.card span {
+  color: #64748b;
+}
+
+.card small {
+  color: #94a3b8;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+}
+
+.filtros {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.filtros h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.filtros label {
+  margin-left: 0.75rem;
+  color: #475569;
+}
+
+.filtros input {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  margin-left: 0.35rem;
+}
+
+.grafica-wrap {
+  position: relative;
+  height: 380px;
+}
+
+.chat {
+  margin-top: 1.5rem;
+}
+
+.chat h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+}
+
+.hint {
+  color: #64748b;
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.mensajes p {
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  max-width: 85%;
+  white-space: pre-wrap;
+}
+
+.mensajes .yo {
+  background: #2563eb;
+  color: #fff;
+  margin-left: auto;
+  width: fit-content;
+}
+
+.mensajes .ia {
+  background: #f1f5f9;
+}
+
+.chat form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.chat input {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+}
+
+.chat button {
+  background: #2563eb;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.chat button:disabled {
+  opacity: 0.5;
+}

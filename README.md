@@ -29,6 +29,7 @@ GitHub Actions (cron diario)
 |--------|------|-------------|
 | GET | `/api/rates?moneda=USD&from=2025-01-01&to=2025-12-31` | Histórico por moneda y rango |
 | GET | `/api/rates/latest` | Último valor de cada moneda |
+| POST | `/api/chat` | Pregunta en lenguaje natural, respondida por IA local con datos de la BD |
 
 ## Cómo correrlo
 
@@ -55,11 +56,26 @@ mvnw spring-boot:run
 # http://localhost:8080/api/rates/latest
 ```
 
+Para el chat con IA se necesita [Ollama](https://ollama.com) corriendo con el modelo:
+
+```bash
+ollama pull llama3.2
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npx ng serve
+# http://localhost:4200
+```
+
 ## Plan de trabajo (10 días)
 
 - [x] **Día 1** — Repo, ETL con reintentos y upsert, esquema de BD, API REST, workflow de GitHub Actions
-- [ ] **Día 2** — Cuenta en Neon, backfill histórico, activar el cron, probar API con datos reales
-- [ ] **Días 3–4** — Dashboard Angular: gráfica de serie de tiempo, selector de rango, último valor
-- [ ] **Días 5–7** — Capa RAG: pgvector + Spring AI + Ollama, endpoint `/api/chat` y UI de chat
-- [ ] **Días 8–9** — Manejo de errores, pruebas básicas, CI de build
-- [ ] **Día 10** — README final con diagrama, screenshots y demo en GIF
+- [x] **Día 2** — Cuenta en Neon, backfill histórico (2,527 registros desde 2019), API probada con datos reales
+- [x] **Días 3–4** — Dashboard Angular: gráfica de serie de tiempo, selector de rango, último valor
+- [x] **Días 5–7** — Asistente IA: Spring AI + Ollama, endpoint `/api/chat` y UI de chat (retrieval por SQL; pgvector queda para fuentes de texto libre)
+- [x] **Días 8–9** — CI de build (backend y frontend) en GitHub Actions
+- [ ] **Pendiente** — Activar el secret `DATABASE_URL` y probar el cron, pruebas básicas, README final con screenshots y demo en GIF
